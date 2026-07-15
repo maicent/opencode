@@ -6,6 +6,7 @@ import { getLogger } from "./logging"
 import { getUserShell, loadShellEnv } from "./shell-env"
 import { getStore } from "./store"
 import { DEFAULT_SERVER_URL_KEY } from "./store-keys"
+import { OFFLINE } from "./constants"
 
 export type HealthCheck = { wait: Promise<void> }
 
@@ -19,6 +20,15 @@ export type SidecarListener = { stop: () => Promise<void> }
 const SIDECAR_SERVICE_NAME = "opencode server"
 const SIDECAR_START_STALL_TIMEOUT = 60_000
 const SIDECAR_STOP_TIMEOUT = 6_000
+
+// Offline switches consumed by the opencode backend running in the sidecar.
+const OFFLINE_ENV = {
+  OPENCODE_DISABLE_AUTOUPDATE: "1",
+  OPENCODE_DISABLE_MODELS_FETCH: "1",
+  OPENCODE_DISABLE_LSP_DOWNLOAD: "1",
+  OPENCODE_DISABLE_SHARE: "1",
+  OPENCODE_PURE: "1",
+} as const
 
 type SpawnLocalServerOptions = {
   userDataPath: string
@@ -49,6 +59,7 @@ export function preferAppEnv(userDataPath: string) {
     OPENCODE_EXPERIMENTAL_FILEWATCHER: "true",
     OPENCODE_CLIENT: "desktop",
     XDG_STATE_HOME: process.env.XDG_STATE_HOME ?? userDataPath,
+    ...(OFFLINE ? OFFLINE_ENV : null),
   })
 }
 

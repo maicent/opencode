@@ -13,7 +13,7 @@ import contextMenu from "electron-context-menu"
 
 import type { ServerReadyData } from "../preload/types"
 import { checkAppExists, resolveAppPath } from "./apps"
-import { CHANNEL } from "./constants"
+import { CHANNEL, OFFLINE } from "./constants"
 import { registerIpcHandlers, sendDeepLinks, sendMenuCommand } from "./ipc"
 import { forwardInitializationFailure } from "./initialization"
 import { exportDebugLogs, initCrashReporter, initLogging, startNetLog, write as writeLog } from "./logging"
@@ -299,10 +299,12 @@ const main = Effect.gen(function* () {
     recordFatalRendererError: (error) => writeLog("renderer", "fatal renderer error", { ...error }, "error"),
   })
   registerWslIpcHandlers(wslServers)
-  void updater.start()
-  const updateTimer = setInterval(() => void updater.check(), 10 * 60 * 1000)
-  updateTimer.unref()
-  app.once("will-quit", () => clearInterval(updateTimer))
+  if (!OFFLINE) {
+    void updater.start()
+    const updateTimer = setInterval(() => void updater.check(), 10 * 60 * 1000)
+    updateTimer.unref()
+    app.once("will-quit", () => clearInterval(updateTimer))
+  }
   yield* Effect.promise(() => startNetLog()).pipe(
     Effect.catch((error) =>
       Effect.sync(() => {

@@ -12,7 +12,13 @@ const channel = (() => {
   return "dev"
 })()
 
-const nodePtyPkg = `@lydell/node-pty-${process.platform}-${process.arch}`
+// node-pty ships one package per platform; override the host platform/arch when cross-building (e.g. Windows from Linux).
+const targetPlatform = process.env.OPENCODE_TARGET_PLATFORM ?? process.platform
+const targetArch = process.env.OPENCODE_TARGET_ARCH ?? process.arch
+const nodePtyPkg = `@lydell/node-pty-${targetPlatform}-${targetArch}`
+
+// Set OPENCODE_OFFLINE=1 to bake in a flag that disables all network-dependent behavior.
+const offline = process.env.OPENCODE_OFFLINE === "1" || process.env.OPENCODE_OFFLINE === "true"
 
 const sentry =
   process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_ORG && process.env.SENTRY_PROJECT
@@ -35,6 +41,7 @@ export default defineConfig({
   main: {
     define: {
       "import.meta.env.OPENCODE_CHANNEL": JSON.stringify(channel),
+      "import.meta.env.OPENCODE_OFFLINE": JSON.stringify(offline),
     },
     build: {
       rollupOptions: {

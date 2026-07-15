@@ -20,6 +20,8 @@
     "package:mac": "electron-builder --mac --config electron-builder.config.ts",
     "package:win": "electron-builder --win --config electron-builder.config.ts",
     "package:linux": "electron-builder --linux --config electron-builder.config.ts",
+    "build:offline": "OPENCODE_OFFLINE=1 electron-vite build",
+    "dist:win:offline": "export OPENCODE_OFFLINE=1 OPENCODE_CHANNEL=prod OPENCODE_TARGET_PLATFORM=win32 OPENCODE_TARGET_ARCH=x64; bun scripts/prepare-win-natives.ts && bun scripts/prepare-wine.ts && export PATH=\"$PWD/.cache/wine/bin:$PATH\" WINEPREFIX=\"$PWD/.cache/wineprefix\" WINEDEBUG=-all; bun run build && bun run package:win",
     "native:build": "bun install --cwd native"
   },
   "main": "./out/main/index.js",
